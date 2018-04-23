@@ -29,6 +29,10 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
         return this;
     }
 
+    public stop() {
+        this.emit('stop');
+    }
+
     private getOptions(startOptions?: StartOptions): StartOptions {
         let connections: number = MultipartDownload.DEFAULT_NUMBER_OF_CONNECTIONS;
         let directory: string;
@@ -77,6 +81,9 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                     .on('end', (output) => {
                         this.emit('end', output);
                     });
+                this.once('stop', () => {
+                   operation.stop();
+                });
             })
             .catch((err) => {
                 this.emit('error', err);

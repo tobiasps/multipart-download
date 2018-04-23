@@ -11,6 +11,7 @@ import {PartialDownload, PartialDownloadRange} from './partial-download';
 export class FileOperation implements Operation {
 
     private readonly emitter: events.EventEmitter = new events.EventEmitter();
+    private downloaders: PartialDownload[] = [];
 
     public constructor(private saveDirectory: string, private fileName?: string) { }
 
@@ -23,7 +24,7 @@ export class FileOperation implements Operation {
         const segmentsRange: PartialDownloadRange[] = FileSegmentation.getSegmentsRange(contentLength, numOfConnections);
         for (let segmentRange of segmentsRange) {
 
-            new PartialDownload()
+            this.downloaders.push(new PartialDownload()
                 .start(url, segmentRange)
                 .on('error', (err) => {
                     this.emitter.emit('error', err);
@@ -40,10 +41,17 @@ export class FileOperation implements Operation {
                             this.emitter.emit('end', filePath);
                         }
                     });
-                });
+                })
+            );
         }
 
         return this.emitter;
+    }
+
+    public stop() {
+        for (const downloader of this.downloaders) {
+            downloader.stop();
+        }
     }
 
     private createFile(url: string, directory: string, fileName?: string): string {
