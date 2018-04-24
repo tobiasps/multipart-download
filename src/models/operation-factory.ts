@@ -11,7 +11,8 @@ export class OperationFactory {
         if (options.writeToBuffer) {
             operation = new BufferOperation();
         } else if (options.saveDirectory) {
-            operation = new FileOperation(options.saveDirectory, options.fileName);
+            operation = new FileOperation(options.saveDirectory, options.fileName, options);
+
         } else {
             operation = new DefaultOperation();
         }
