@@ -9,6 +9,7 @@ const partial_download_1 = require("./partial-download");
 class FileOperation {
     constructor(saveDirectory, fileName, options) {
         this.emitter = new events.EventEmitter();
+        this.downloaders = [];
         this.metadataBufferSize = 1024;
         this.segmentBufferSize = 64;
         this.saveDirectory = saveDirectory;
@@ -53,7 +54,7 @@ class FileOperation {
         const rangeMap = new Map();
         for (let segmentRange of segmentsRange) {
             rangeMap.set(segmentRange.start, index);
-            new partial_download_1.PartialDownload()
+            this.downloaders.push(new partial_download_1.PartialDownload()
                 .start(url, segmentRange)
                 .on('error', (err, range) => {
                 this.emitter.emit('error', err, range);
@@ -94,10 +95,15 @@ class FileOperation {
                         this.emitter.emit('end', filePath);
                     }
                 });
-            });
+            }));
             index++;
         }
         return this.emitter;
+    }
+    stop() {
+        for (const downloader of this.downloaders) {
+            downloader.stop();
+        }
     }
     createFile(filePath) {
         fs.createWriteStream(filePath).end();

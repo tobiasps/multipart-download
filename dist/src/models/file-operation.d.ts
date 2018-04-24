@@ -4,6 +4,7 @@ import { Operation } from "./operation";
 import { StartOptions } from './start-options';
 export declare class FileOperation implements Operation {
     private readonly emitter;
+    private downloaders;
     private metadataBufferSize;
     private segmentBufferSize;
     private saveDirectory;
@@ -11,6 +12,7 @@ export declare class FileOperation implements Operation {
     private options;
     constructor(saveDirectory: string, fileName?: string, options?: StartOptions);
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
+    stop(): void;
     private createFile(filePath);
     private getFilePath(url, directory, fileName?);
     private getMetadataPath(filePath);

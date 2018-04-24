@@ -3,6 +3,7 @@ import events = require('events');
 import { PartialDownloadRange } from './partial-download';
 export interface Operation {
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
+    stop(): any;
 }
 export interface IMetadata {
     url: string;

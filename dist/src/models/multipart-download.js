@@ -15,6 +15,9 @@ class MultipartDownload extends events.EventEmitter {
         this.execute(url, options);
         return this;
     }
+    stop() {
+        this.emit('stop');
+    }
     getOptions(startOptions) {
         let connections = MultipartDownload.DEFAULT_NUMBER_OF_CONNECTIONS;
         let directory;
@@ -66,6 +69,9 @@ class MultipartDownload extends events.EventEmitter {
             })
                 .on('progress', (progress) => {
                 this.emit('progress', progress);
+            });
+            this.once('stop', () => {
+                operation.stop();
             });
         })
             .catch((err) => {

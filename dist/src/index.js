@@ -1,3 +1,6 @@
 "use strict";
-const multipart_download_1 = require("./models/multipart-download");
-module.exports = multipart_download_1.MultipartDownload;
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
+Object.defineProperty(exports, "__esModule", { value: true });
+__export(require("./models/multipart-download"));

@@ -5,5 +5,7 @@ export interface PartialDownloadRange {
     readonly end: number;
 }
 export declare class PartialDownload extends events.EventEmitter {
+    private request;
     start(url: string, range: PartialDownloadRange): PartialDownload;
+    stop(): void;
 }

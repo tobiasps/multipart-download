@@ -8,6 +8,7 @@ export declare class MultipartDownload extends events.EventEmitter implements Mu
     private static readonly DEFAULT_NUMBER_OF_CONNECTIONS;
     private static readonly SINGLE_CONNECTION;
     start(url: string, startOptions?: StartOptions): MultipartDownload;
+    stop(): void;
     private getOptions(startOptions?);
     private execute(url, options);
     private validateInputs(url, options);

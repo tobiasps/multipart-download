@@ -15,7 +15,7 @@ class PartialDownload extends events.EventEmitter {
             }
         };
         let offset = range.start;
-        request
+        this.request = request
             .get(url, options)
             .on('error', (err) => {
             this.emit('error', err, range);
@@ -28,6 +28,9 @@ class PartialDownload extends events.EventEmitter {
             this.emit('end', range);
         });
         return this;
+    }
+    stop() {
+        this.request.abort();
     }
 }
 exports.PartialDownload = PartialDownload;
