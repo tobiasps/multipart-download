@@ -7,14 +7,33 @@ import {UrlParser} from '../utilities/url-parser';
 
 import {IMetadata, IProgressData, Operation} from "./operation";
 import {PartialDownload, PartialDownloadRange} from './partial-download';
+import {StartOptions} from './start-options';
 
 export class FileOperation implements Operation {
 
     private readonly emitter: events.EventEmitter = new events.EventEmitter();
     private metadataBufferSize = 1024;
     private segmentBufferSize = 64;
+    private saveDirectory: string;
+    private fileName: string;
+    private options: StartOptions;
 
-    public constructor(private saveDirectory: string, private fileName?: string) { }
+    public constructor(saveDirectory: string, fileName?: string, options?: StartOptions) {
+        this.saveDirectory = saveDirectory;
+        this.fileName = fileName;
+        this.options = {
+            saveDirectory: saveDirectory,
+            fileName: fileName,
+            resume: true,
+            metadataPathExtension: 'dat',
+            metadataPathPrefix: ''
+        };
+        if (options) {
+            for (const key of Object.keys(options)) {
+              this.options[key] = options[key];
+            }
+        }
+    }
 
     public start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter {
         const filePath = this.getFilePath(url, this.saveDirectory, this.fileName);
@@ -26,7 +45,7 @@ export class FileOperation implements Operation {
         let progressMap = this.setupProgress(segmentsRange);
 
         const metadataPath = this.getMetadataPath(filePath);
-        if (fs.existsSync(filePath) && fs.existsSync(metadataPath)) {
+        if (this.options.resume && fs.existsSync(filePath) && fs.existsSync(metadataPath)) {
             try {
               const metadata = this.parseMetadataFile(metadataPath);
               segmentsRange = metadata.resumeSegments;
@@ -85,7 +104,11 @@ export class FileOperation implements Operation {
                     writeStream.end(() => {
                         if (++endCounter === numOfConnections) {
                             fs.closeSync(metadataStream);
-                            fs.unlinkSync(metadataPath);
+                            try {
+                                fs.unlinkSync(metadataPath);
+                            } catch (reason) {
+                              this.emitter.emit('error', reason);
+                            }
                             this.emitter.emit('progress', 1);
                             this.emitter.emit('end', filePath);
                         }
@@ -108,7 +131,9 @@ export class FileOperation implements Operation {
     }
 
     private getMetadataPath(filePath: string) {
-        return `${filePath}.dat`;
+        const prefix = this.options.metadataPathPrefix;
+        const ext = this.options.metadataPathExtension;
+        return `${prefix}${filePath}.${ext}`;
     }
 
     private createMetadataFile(

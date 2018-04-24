@@ -33,19 +33,28 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
         let connections: number = MultipartDownload.DEFAULT_NUMBER_OF_CONNECTIONS;
         let directory: string;
         let file: string;
-        
+        let metadataPathPrefix = '';
+        let metadataPathExtension = 'dat';
+        let resume = true;
+
         if (startOptions) {
             connections = startOptions.numOfConnections ?
                             startOptions.numOfConnections : connections;
 
             directory = startOptions.saveDirectory;
             file = startOptions.fileName;
+            metadataPathPrefix = startOptions.metadataPathPrefix || metadataPathPrefix;
+            metadataPathExtension = startOptions.metadataPathExtension || metadataPathExtension;
+            resume = startOptions.resume || resume;
         }
 
         const options: StartOptions = {
             numOfConnections: connections,
             saveDirectory: directory,
-            fileName: file
+            fileName: file,
+            resume: resume,
+            metadataPathPrefix: metadataPathPrefix,
+            metadataPathExtension: metadataPathExtension
         };
 
         return options;

@@ -2,7 +2,7 @@
 
 [![NPM](https://nodei.co/npm/multipart-download.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/multipart-download/)
 
-Speed up download of a single file with multiple HTTP GET connections running in parallel
+Speed up download of a single file with multiple HTTP GET connections running in parallel. Resume download if possible.
 
 ## Class: MultipartDownload
 
@@ -15,6 +15,9 @@ MultipartDownload is an `EventEmitter`.
   - `writeToBuffer` &lt;boolean&gt; Store downloaded data to buffer (Optional)
   - `saveDirectory` &lt;string&gt; Directory to save the downloaded file (Optional)
   - `fileName` &lt;string&gt; Set name of the downloaded file (Optional)
+  - `resume` &lt;boolean&gt; Set false to disable resuming (Optional, Default:true)
+  - `metadataPathExtension` &lt;string&gt; Set extension for metadata file (Optional)
+  - `metadataPathPrefix` &lt;string&gt; Set prefix for metadata file (Optional)
 
 Starts the download operation from the `url`.
 
@@ -28,6 +31,11 @@ If the `writeToBuffer` parameter is set to `true`, the downloaded file will be w
 If the `saveDirectory` parameter is provided, the downloaded file will be saved to the `saveDirectory`.
 If the `fileName` parameter is provided, the downloaded file will be renamed to `fileName`.
 If the `fileName` parameter is not provided, the downloaded file will maintain its original file name.
+
+To be able to resume a broken or stopped download a separate metadata file is written during the download.
+This file contains information on how much of the file has been downloaded. When a downloaded is started this file is 
+checked to see if the file can be resumed (when resume is enabled). After the download has completed this file will be 
+removed.
 
 #### Event: 'error'
 - `err` &lt;Error&gt; Emitted error
@@ -110,6 +118,10 @@ new MultipartDownload()
   })
   .on('data', (data, offset) => {
     // manipulate data here
+  })
+  .on('progress', (progress) => {
+    // progress is the total progress, 0 < progress < 1;
+    // currently only available on file operation 
   })
   .on('end', (output) => {
     console.log(`Downloaded file path: ${output}`);

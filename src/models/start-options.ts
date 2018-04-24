@@ -3,4 +3,7 @@ export interface StartOptions {
     writeToBuffer?: boolean;
     saveDirectory?: string;
     fileName?: string;
+    resume?: boolean;
+    metadataPathExtension?: string;
+    metadataPathPrefix?: string;
 }
