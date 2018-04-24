@@ -29,6 +29,9 @@ If the `saveDirectory` parameter is provided, the downloaded file will be saved 
 If the `fileName` parameter is provided, the downloaded file will be renamed to `fileName`.
 If the `fileName` parameter is not provided, the downloaded file will maintain its original file name.
 
+### stop()
+Stop any ongoing transfer(s). Any files created be the downloader will not be removed.
+
 #### Event: 'error'
 - `err` &lt;Error&gt; Emitted error
 
@@ -56,7 +59,7 @@ The file being downloaded can be manually constructed and manipulated using the 
 ```javascript
 const MultipartDownload = require('multipart-download');
 
-new MultipartDownload()
+const downloader = new MultipartDownload()
   .start('https://homepages.cae.wisc.edu/~ece533/images/cat.png', {
     numOfConnections: 5
   })
@@ -69,6 +72,9 @@ new MultipartDownload()
   .on('end', () => {
 
   });
+
+// To stop the download call:
+// downloader.stop();
 ```
 
 #### Download and write to buffer
@@ -76,7 +82,7 @@ new MultipartDownload()
 ```javascript
 const MultipartDownload = require('multipart-download');
 
-new MultipartDownload()
+const downloader = new MultipartDownload()
   .start('https://homepages.cae.wisc.edu/~ece533/images/cat.png', {
     numOfConnections: 5,
     writeToBuffer: true
@@ -90,6 +96,9 @@ new MultipartDownload()
   .on('end', (output) => {
     console.log(`Downloaded file buffer: ${buffer}`);
   });
+
+// To stop the download call:
+// downloader.stop();
 ```
 
 #### Download and save to file
@@ -99,7 +108,7 @@ const os = require('os');
 
 const MultipartDownload = require('multipart-download');
 
-new MultipartDownload()
+const downloader = new MultipartDownload()
   .start('https://homepages.cae.wisc.edu/~ece533/images/cat.png', {
     numOfConnections: 5,
     saveDirectory: os.tmpdir(),
@@ -114,4 +123,7 @@ new MultipartDownload()
   .on('end', (output) => {
     console.log(`Downloaded file path: ${output}`);
   });
+
+// To stop the download call:
+// downloader.stop();
 ```
