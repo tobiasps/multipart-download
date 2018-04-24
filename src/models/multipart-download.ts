@@ -80,6 +80,9 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                     })
                     .on('end', (output) => {
                         this.emit('end', output);
+                    })
+                    .on('progress', (progress) => {
+                        this.emit('progress', progress);
                     });
                 this.once('stop', () => {
                    operation.stop();
