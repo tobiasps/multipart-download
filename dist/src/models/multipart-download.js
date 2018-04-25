@@ -6,6 +6,10 @@ const accept_ranges_1 = require("./accept-ranges");
 const operation_factory_1 = require("./operation-factory");
 const partial_request_query_1 = require("./partial-request-query");
 class MultipartDownload extends events.EventEmitter {
+    constructor() {
+        super(...arguments);
+        this.operations = new Map();
+    }
     start(url, startOptions) {
         const options = this.getOptions(startOptions);
         const validationError = this.validateInputs(url, options);
@@ -16,6 +20,10 @@ class MultipartDownload extends events.EventEmitter {
         return this;
     }
     stop() {
+        this.operations.forEach((operation) => {
+            operation.stop();
+        });
+        this.operations.clear();
         this.emit('stop');
     }
     getOptions(startOptions) {
@@ -58,21 +66,21 @@ class MultipartDownload extends events.EventEmitter {
             const operation = operation_factory_1.OperationFactory.getOperation(options);
             operation
                 .start(url, metadata.contentLength, options.numOfConnections)
-                .on('error', (err) => {
-                this.emit('error', err);
+                .on('error', (err, range) => {
+                this.emit('error', err, range);
+                this.operations.delete(url);
             })
-                .on('data', (data, offset) => {
-                this.emit('data', data, offset);
+                .on('data', (data, offset, range) => {
+                this.emit('data', data, offset, range);
             })
                 .on('end', (output) => {
                 this.emit('end', output);
+                this.operations.delete(url);
             })
                 .on('progress', (progress) => {
                 this.emit('progress', progress);
             });
-            this.once('stop', () => {
-                operation.stop();
-            });
+            this.operations.set(url, operation);
         })
             .catch((err) => {
             this.emit('error', err);

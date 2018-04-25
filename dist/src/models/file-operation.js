@@ -131,9 +131,7 @@ class FileOperation {
         const metadataPath = this.getMetadataPath(filePath);
         const buf = Buffer.alloc(this.metadataBufferSize);
         buf.write(JSON.stringify(data), 0, undefined, 'utf8');
-        const stream = fs.createWriteStream(metadataPath, { flags: 'w' });
-        stream.write(buf);
-        stream.end();
+        fs.writeFileSync(metadataPath, buf, { flag: 'w' });
         return metadataPath;
     }
     parseMetadataFile(metadataPath) {

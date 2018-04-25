@@ -7,6 +7,7 @@ export interface MultipartOperation {
 export declare class MultipartDownload extends events.EventEmitter implements MultipartOperation {
     private static readonly DEFAULT_NUMBER_OF_CONNECTIONS;
     private static readonly SINGLE_CONNECTION;
+    private operations;
     start(url: string, startOptions?: StartOptions): MultipartDownload;
     stop(): void;
     private getOptions(startOptions?);
