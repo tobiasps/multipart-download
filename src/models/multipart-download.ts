@@ -77,11 +77,11 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                 const operation: Operation = OperationFactory.getOperation(options);
                 operation
                     .start(url, metadata.contentLength, options.numOfConnections)
-                    .on('error', (err) => {
-                        this.emit('error', err);
+                    .on('error', (err, range) => {
+                        this.emit('error', err, range);
                     })
-                    .on('data', (data, offset) => {
-                        this.emit('data', data, offset);
+                    .on('data', (data, offset, range) => {
+                        this.emit('data', data, offset, range);
                     })
                     .on('end', (output) => {
                         this.emit('end', output);
