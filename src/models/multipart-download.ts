@@ -15,6 +15,7 @@ export interface MultipartOperation {
 export class MultipartDownload extends events.EventEmitter implements MultipartOperation {
     private static readonly DEFAULT_NUMBER_OF_CONNECTIONS: number = 1;
     private static readonly SINGLE_CONNECTION: number = 1;
+    private operations: Map<string, Operation> = new Map<string, Operation>();
 
     public start(url: string, startOptions?: StartOptions): MultipartDownload {
         const options: StartOptions = this.getOptions(startOptions);
@@ -30,6 +31,10 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
     }
 
     public stop() {
+        this.operations.forEach((operation: Operation) => {
+          operation.stop();
+        });
+        this.operations.clear();
         this.emit('stop');
     }
 
@@ -81,21 +86,21 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                 const operation: Operation = OperationFactory.getOperation(options);
                 operation
                     .start(url, metadata.contentLength, options.numOfConnections)
-                    .on('error', (err) => {
-                        this.emit('error', err);
+                    .on('error', (err, range) => {
+                        this.emit('error', err, range);
+                        this.operations.delete(url);
                     })
-                    .on('data', (data, offset) => {
-                        this.emit('data', data, offset);
+                    .on('data', (data, offset, range) => {
+                        this.emit('data', data, offset, range);
                     })
                     .on('end', (output) => {
                         this.emit('end', output);
+                        this.operations.delete(url);
                     })
                     .on('progress', (progress) => {
                         this.emit('progress', progress);
                     });
-                this.once('stop', () => {
-                   operation.stop();
-                });
+                this.operations.set(url, operation);
             })
             .catch((err) => {
                 this.emit('error', err);
