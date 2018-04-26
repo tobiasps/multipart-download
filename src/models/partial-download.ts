@@ -1,5 +1,7 @@
 import events = require('events');
 import request = require('request');
+import uuid = require('uuid/v1');
+
 
 import {AcceptRanges} from './accept-ranges';
 
@@ -10,8 +12,11 @@ export interface PartialDownloadRange {
 
 export class PartialDownload extends events.EventEmitter {
     private request: request.Request;
+    private id: string;
+    private aborted: boolean = false;
 
     public start(url: string, range: PartialDownloadRange): PartialDownload {
+        this.aborted = false;
         if (range.start === range.end) {
           this.emit('end');
           return this;
@@ -27,14 +32,14 @@ export class PartialDownload extends events.EventEmitter {
         this.request = request
             .get(url, options)
             .on('error', (err) => {
-                this.emit('error', err, range);
+                this.emit('error', this, err, range);
             })
             .on('data', (data) => {
-                this.emit('data', data, offset, range);
+                this.emit('data', this, data, offset, range);
                 offset += data.length;
             })
             .on('end', () => {
-                this.emit('end', range);
+                this.emit('end', this, range);
             });
 
         return this;
@@ -42,5 +47,17 @@ export class PartialDownload extends events.EventEmitter {
 
     public stop() {
       this.request.abort();
+      this.aborted = true;
+    }
+
+    public getId() {
+      if (!this.id) {
+        this.id = uuid();
+      }
+      return this.id;
+    }
+
+    public isAborted() {
+      return this.aborted;
     }
 }

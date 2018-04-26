@@ -18,13 +18,13 @@ export class DefaultOperation implements Operation {
 
             this.downloaders.push(new PartialDownload()
                 .start(url, segmentRange)
-                .on('error', (err) => {
+                .on('error', (pd: PartialDownload, err) => {
                     this.emitter.emit('error', err);
                 })
-                .on('data', (data, offset) => {
+                .on('data', (pd: PartialDownload, data, offset) => {
                     this.emitter.emit('data', data, offset);
                 })
-                .on('end', () => {
+                .on('end', (pd: PartialDownload) => {
                     if (++endCounter === numOfConnections) {
                         this.emitter.emit('end', null);
                     }
