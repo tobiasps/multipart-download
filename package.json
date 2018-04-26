@@ -31,7 +31,9 @@
   "dependencies": {
     "request": "^2.79.0",
     "valid-filename": "^2.0.1",
-    "validator": "^6.2.1"
+    "validator": "^6.2.1",
+    "uuid": "^3.2.1",
+    "queue": "^4.4.2"
   },
   "devDependencies": {
     "@types/chai": "^3.4.35",
