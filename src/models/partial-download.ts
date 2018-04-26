@@ -13,8 +13,10 @@ export interface PartialDownloadRange {
 export class PartialDownload extends events.EventEmitter {
     private request: request.Request;
     private id: string;
+    private aborted: boolean = false;
 
     public start(url: string, range: PartialDownloadRange): PartialDownload {
+        this.aborted = false;
         if (range.start === range.end) {
           this.emit('end');
           return this;
@@ -45,6 +47,7 @@ export class PartialDownload extends events.EventEmitter {
 
     public stop() {
       this.request.abort();
+      this.aborted = true;
     }
 
     public getId() {
@@ -52,5 +55,9 @@ export class PartialDownload extends events.EventEmitter {
         this.id = uuid();
       }
       return this.id;
+    }
+
+    public isAborted() {
+      return this.aborted;
     }
 }

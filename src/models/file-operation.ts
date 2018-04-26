@@ -50,7 +50,6 @@ export class FileOperation implements Operation {
     public start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter {
         const filePath = this.getFilePath(url, this.saveDirectory, this.fileName);
 
-        const fd = fs.openSync(filePath, 'r+');
         let endCounter: number = 0;
 
         let segmentsRange: PartialDownloadRange[] = FileSegmentation.getSegmentsRange(contentLength, numOfConnections);
@@ -70,8 +69,8 @@ export class FileOperation implements Operation {
             this.createFile(filePath);
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
-
-        const metadataStream = fs.openSync(metadataPath, 'r+');
+        const fd = fs.openSync(filePath, 'r+');
+        const metadataFd = fs.openSync(metadataPath, 'r+');
 
         let index = 0;
         const rangeMap: Map<number, number> = new Map();
@@ -102,7 +101,7 @@ export class FileOperation implements Operation {
                                 const buf = Buffer.alloc(this.segmentBufferSize);
                                 buf.write(JSON.stringify({index: i, offset: offset, length: data.length}), 0,
                                     undefined,'utf8');
-                                fs.write(metadataStream, buf, 0, buf.length,
+                                fs.write(metadataFd, buf, 0, buf.length,
                                     this.metadataBufferSize + i * this.segmentBufferSize, () => {});
 
                                 // Calculate progress
@@ -122,7 +121,7 @@ export class FileOperation implements Operation {
                     });
                 })
                 .on('end', (pd: PartialDownload) => {
-                    if (++endCounter === numOfConnections) {
+                    if (!pd.isAborted() && ++endCounter === numOfConnections) {
                         this.q.push(() => {
                             return new Promise((resolve, reject) => {
                                 fs.close(fd, (err) => {
@@ -131,7 +130,11 @@ export class FileOperation implements Operation {
                                         reject(err);
                                     } else {
                                         try {
-                                            fs.unlinkSync(metadataPath);
+                                            fs.close(metadataFd, (err) => {
+                                                if (!err) {
+                                                    fs.unlinkSync(metadataPath);
+                                                }
+                                            });
                                             this.emitter.emit('progress', 1);
                                             this.emitter.emit('end', filePath);
                                             resolve();
