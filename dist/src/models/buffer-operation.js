@@ -15,14 +15,14 @@ class BufferOperation {
         for (let segmentRange of segmentsRange) {
             this.downloaders.push(new partial_download_1.PartialDownload()
                 .start(url, segmentRange)
-                .on('error', (err) => {
+                .on('error', (pd, err) => {
                 this.emitter.emit('error', err);
             })
-                .on('data', (data, offset) => {
+                .on('data', (pd, data, offset) => {
                 this.emitter.emit('data', data, offset);
                 data.copy(buffer, offset);
             })
-                .on('end', () => {
+                .on('end', (pd) => {
                 if (++endCounter === numOfConnections) {
                     this.emitter.emit('end', buffer);
                 }

@@ -10,6 +10,7 @@ export declare class FileOperation implements Operation {
     private saveDirectory;
     private fileName;
     private options;
+    private q;
     constructor(saveDirectory: string, fileName?: string, options?: StartOptions);
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
     stop(): void;

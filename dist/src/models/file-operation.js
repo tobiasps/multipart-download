@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const events = require("events");
 const fs = require("fs");
+const queue = require("queue");
 const file_segmentation_1 = require("../utilities/file-segmentation");
 const path_formatter_1 = require("../utilities/path-formatter");
 const url_parser_1 = require("../utilities/url-parser");
@@ -26,10 +27,16 @@ class FileOperation {
                 this.options[key] = options[key];
             }
         }
+        this.q = queue();
+        this.q.timeout = 0;
+        this.q.autostart = true;
+        this.q.concurrency = 1;
+        this.q.on('error', (result, job) => {
+            this.emitter.emit('error', result);
+        });
     }
     start(url, contentLength, numOfConnections) {
         const filePath = this.getFilePath(url, this.saveDirectory, this.fileName);
-        let writeStream;
         let endCounter = 0;
         let segmentsRange = file_segmentation_1.FileSegmentation.getSegmentsRange(contentLength, numOfConnections);
         let progressMap = this.setupProgress(segmentsRange);
@@ -49,52 +56,79 @@ class FileOperation {
             this.createFile(filePath);
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
-        const metadataStream = fs.openSync(metadataPath, 'r+');
+        const fd = fs.openSync(filePath, 'r+');
+        const metadataFd = fs.openSync(metadataPath, 'r+');
         let index = 0;
         const rangeMap = new Map();
         for (let segmentRange of segmentsRange) {
             rangeMap.set(segmentRange.start, index);
             this.downloaders.push(new partial_download_1.PartialDownload()
                 .start(url, segmentRange)
-                .on('error', (err, range) => {
+                .on('error', (pd, err, range) => {
                 this.emitter.emit('error', err, range);
             })
-                .on('data', (data, offset, range) => {
+                .on('data', (pd, data, offset, range) => {
                 this.emitter.emit('data', data, offset, range);
-                writeStream = fs.createWriteStream(filePath, { flags: 'r+', start: offset });
-                writeStream.write(data);
-                // get segment index
-                const i = rangeMap.get(range.start);
-                // write resume metadata
-                const buf = Buffer.alloc(this.segmentBufferSize);
-                buf.write(JSON.stringify({ index: i, offset: offset, length: data.length }), 0, undefined, 'utf8');
-                fs.write(metadataStream, buf, 0, buf.length, this.metadataBufferSize + i * this.segmentBufferSize, () => { });
-                // Calculate progress
-                const p = progressMap.get(i);
-                p.transferred = offset + data.length - p.start;
-                p.progress = p.transferred / (p.end - p.start);
-                let accumulatedProgress = 0;
-                progressMap.forEach((val) => {
-                    accumulatedProgress += val.progress;
+                this.q.push(() => {
+                    return new Promise((resolve, reject) => {
+                        fs.write(fd, data, 0, data.length, offset, (err, written) => {
+                            if (err) {
+                                this.q.end();
+                                reject(err);
+                            }
+                            else {
+                                resolve(written);
+                            }
+                            // get segment index
+                            const i = rangeMap.get(range.start);
+                            // write resume metadata
+                            const buf = Buffer.alloc(this.segmentBufferSize);
+                            buf.write(JSON.stringify({ index: i, offset: offset, length: data.length }), 0, undefined, 'utf8');
+                            fs.write(metadataFd, buf, 0, buf.length, this.metadataBufferSize + i * this.segmentBufferSize, () => { });
+                            // Calculate progress
+                            const p = progressMap.get(i);
+                            p.transferred = offset + data.length - p.start;
+                            p.progress = p.transferred / (p.end - p.start);
+                            let accumulatedProgress = 0;
+                            progressMap.forEach((val) => {
+                                accumulatedProgress += val.progress;
+                            });
+                            let totalProgress = accumulatedProgress / progressMap.size;
+                            totalProgress = totalProgress > 1 ? 1 : totalProgress;
+                            this.emitter.emit('progress', totalProgress);
+                        });
+                    });
                 });
-                let totalProgress = accumulatedProgress / progressMap.size;
-                totalProgress = totalProgress > 1 ? 1 : totalProgress;
-                this.emitter.emit('progress', totalProgress);
             })
-                .on('end', () => {
-                writeStream.end(() => {
-                    if (++endCounter === numOfConnections) {
-                        fs.closeSync(metadataStream);
-                        try {
-                            fs.unlinkSync(metadataPath);
-                        }
-                        catch (reason) {
-                            this.emitter.emit('error', reason);
-                        }
-                        this.emitter.emit('progress', 1);
-                        this.emitter.emit('end', filePath);
-                    }
-                });
+                .on('end', (pd) => {
+                if (!pd.isAborted() && ++endCounter === numOfConnections) {
+                    this.q.push(() => {
+                        return new Promise((resolve, reject) => {
+                            fs.close(fd, (err) => {
+                                if (err) {
+                                    this.emitter.emit('error', err);
+                                    reject(err);
+                                }
+                                else {
+                                    try {
+                                        fs.close(metadataFd, (err) => {
+                                            if (!err) {
+                                                fs.unlinkSync(metadataPath);
+                                            }
+                                        });
+                                        this.emitter.emit('progress', 1);
+                                        this.emitter.emit('end', filePath);
+                                        resolve();
+                                    }
+                                    catch (reason) {
+                                        this.emitter.emit('error', reason);
+                                        reject(reason);
+                                    }
+                                }
+                            });
+                        });
+                    });
+                }
             }));
             index++;
         }

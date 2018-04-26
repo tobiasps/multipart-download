@@ -6,6 +6,10 @@ export interface PartialDownloadRange {
 }
 export declare class PartialDownload extends events.EventEmitter {
     private request;
+    private id;
+    private aborted;
     start(url: string, range: PartialDownloadRange): PartialDownload;
     stop(): void;
+    getId(): string;
+    isAborted(): boolean;
 }
