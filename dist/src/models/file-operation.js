@@ -101,7 +101,7 @@ class FileOperation {
                 });
             })
                 .on('end', (pd) => {
-                if (!pd.isAborted() && ++endCounter === numOfConnections) {
+                if (!pd.isError() && !pd.isAborted() && ++endCounter === numOfConnections) {
                     this.q.push(() => {
                         return new Promise((resolve, reject) => {
                             fs.close(fd, (err) => {

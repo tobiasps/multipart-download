@@ -8,6 +8,7 @@ class PartialDownload extends events.EventEmitter {
     constructor() {
         super(...arguments);
         this.aborted = false;
+        this._isError = false;
     }
     start(url, range) {
         this.aborted = false;
@@ -24,11 +25,22 @@ class PartialDownload extends events.EventEmitter {
         this.request = request
             .get(url, options)
             .on('error', (err) => {
+            this._isError = true;
             this.emit('error', this, err, range);
         })
-            .on('data', (data) => {
-            this.emit('data', this, data, offset, range);
-            offset += data.length;
+            .on('response', (response) => {
+            response.on('data', (data) => {
+                // Only emit data if we got valid data
+                // note data here is not decompressed if gzip is enabled in request options...
+                if (response.statusCode >= 200 && response.statusCode < 300) {
+                    this.emit('data', this, data, offset, range);
+                    offset += data.length;
+                }
+                else {
+                    this._isError = true;
+                    console.log(`Unexpected status code ${response.statusCode}`);
+                }
+            });
         })
             .on('end', () => {
             this.emit('end', this, range);
@@ -47,6 +59,9 @@ class PartialDownload extends events.EventEmitter {
     }
     isAborted() {
         return this.aborted;
+    }
+    isError() {
+        return this._isError;
     }
 }
 exports.PartialDownload = PartialDownload;
