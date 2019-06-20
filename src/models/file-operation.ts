@@ -132,7 +132,11 @@ export class FileOperation implements Operation {
                                         try {
                                             fs.close(metadataFd, (err) => {
                                                 if (!err) {
-                                                    fs.unlinkSync(metadataPath);
+                                                    fs.unlink(metadataPath, (err) => {
+                                                        if (err) {
+                                                            this.emitter.emit('warning', err);
+                                                        }
+                                                    });
                                                 }
                                             });
                                             this.emitter.emit('progress', 1);
