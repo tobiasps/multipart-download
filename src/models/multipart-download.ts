@@ -77,6 +77,7 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                 const metadataError: Error = this.validateMetadata(url, metadata);
                 if (metadataError) {
                     this.emit('error', metadataError);
+                    return;
                 }
 
                 if (metadata.acceptRanges !== AcceptRanges.Bytes) {

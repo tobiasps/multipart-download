@@ -6,4 +6,5 @@ export interface StartOptions {
     resume?: boolean;
     metadataPathExtension?: string;
     metadataPathPrefix?: string;
+    temporaryExtension?: string;
 }

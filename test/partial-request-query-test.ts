@@ -17,6 +17,9 @@ describe('Partial request query', () => {
                 expect(metadata.acceptRanges).to.equal(AcceptRanges.Bytes);
                 expect(metadata.contentLength).to.not.be.NaN;
                 done();
+            })
+            .catch((err) => {
+                done(err);
             });
     });
 
@@ -31,6 +34,9 @@ describe('Partial request query', () => {
                 expect(metadata.acceptRanges).to.not.exist;
                 expect(metadata.contentLength).to.not.be.NaN;
                 done();
+            })
+            .catch((err) => {
+                done(err);
             });
     });
 });

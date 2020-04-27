@@ -29,18 +29,14 @@
     "threaded"
   ],
   "dependencies": {
-    "request": "^2.79.0",
-    "valid-filename": "^2.0.1",
-    "validator": "^6.2.1",
-    "uuid": "^3.2.1",
-    "queue": "^4.4.2"
+    "valid-filename": "^3.1.0",
+    "validator": "^13.0.0"
   },
   "devDependencies": {
-    "@types/chai": "^3.4.35",
-    "@types/mocha": "^2.2.39",
+    "@types/chai": "^3.5.2",
+    "@types/mocha": "^7.0.2",
     "@types/node": "^7.0.5",
-    "@types/request": "^2.0.9",
     "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "mocha": "^7.1.2"
   }
 }
