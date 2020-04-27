@@ -59,6 +59,7 @@ class MultipartDownload extends events.EventEmitter {
             const metadataError = this.validateMetadata(url, metadata);
             if (metadataError) {
                 this.emit('error', metadataError);
+                return;
             }
             if (metadata.acceptRanges !== accept_ranges_1.AcceptRanges.Bytes) {
                 options.numOfConnections = MultipartDownload.SINGLE_CONNECTION;

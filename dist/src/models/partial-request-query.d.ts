@@ -3,5 +3,5 @@ export interface PartialRequestMetadata {
     readonly contentLength: number;
 }
 export declare class PartialRequestQuery {
-    getMetadata(url: string): Promise<PartialRequestMetadata>;
+    getMetadata(uri: string): Promise<PartialRequestMetadata>;
 }

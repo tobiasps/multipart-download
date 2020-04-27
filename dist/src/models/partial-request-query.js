@@ -1,24 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const request = require("request");
+const https_1 = require("https");
+const url_1 = require("url");
 class PartialRequestQuery {
-    getMetadata(url) {
+    getMetadata(uri) {
         return new Promise((resolve, reject) => {
-            request.head(url, (err, res, body) => {
-                if (err) {
-                    reject(err);
+            const url = new url_1.URL(uri);
+            const options = {
+                hostname: url.hostname,
+                path: `${url.pathname}${url.search}`,
+                method: 'HEAD'
+            };
+            const req = https_1.request(options, (res) => {
+                if (res.statusCode !== 405 && (res.statusCode < 200 || res.statusCode >= 300)) {
+                    return reject(new Error(`Error getting metadata, status code: ${res.statusCode}`));
                 }
-                else if (res.statusCode !== 405 && (res.statusCode < 200 || res.statusCode >= 300)) {
-                    reject(`Error getting metadata, status code: ${res.statusCode}`);
-                }
-                // 405 Method not allowed - we allow 405 as it may be that we are allowed to download the file although
-                // we are not allowed to do the HEAD request.
                 const metadata = {
                     acceptRanges: res.headers['accept-ranges'],
                     contentLength: parseInt(res.headers['content-length'])
                 };
-                resolve(metadata);
+                return resolve(metadata);
             });
+            req.on('error', (err) => {
+                return reject(err);
+            });
+            req.end();
         });
     }
 }

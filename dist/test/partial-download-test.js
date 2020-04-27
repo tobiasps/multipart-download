@@ -9,7 +9,7 @@ describe('Partial download', () => {
         let segmentSize = 0;
         new partial_download_1.PartialDownload()
             .start(test_config_1.TestConfig.AcceptRangesSupportedUrl.url, { start: 0, end: 199 })
-            .on('data', (data, offset) => {
+            .on('data', (pd, data, offset) => {
             segmentSize += data.length;
         })
             .on('end', () => {

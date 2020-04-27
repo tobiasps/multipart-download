@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const events = require("events");
-const request = require("request");
-const uuid = require("uuid/v1");
+const https_1 = require("https");
+const url_1 = require("url");
 const accept_ranges_1 = require("./accept-ranges");
 class PartialDownload extends events.EventEmitter {
     constructor() {
@@ -10,52 +10,51 @@ class PartialDownload extends events.EventEmitter {
         this.aborted = false;
         this._isError = false;
     }
-    start(url, range) {
+    start(uri, range) {
         this.aborted = false;
-        if (range.start === range.end) {
+        if (range.start >= range.end) {
             this.emit('end');
             return this;
         }
+        const url = new url_1.URL(uri);
         const options = {
+            hostname: url.hostname,
+            path: `${url.pathname}${url.search}`,
             headers: {
                 Range: `${accept_ranges_1.AcceptRanges.Bytes}=${range.start}-${range.end}`
             }
         };
         let offset = range.start;
-        this.request = request
-            .get(url, options)
-            .on('error', (err) => {
-            this._isError = true;
-            this.emit('error', this, err, range);
-        })
-            .on('response', (response) => {
-            response.on('data', (data) => {
-                // Only emit data if we got valid data
-                // note data here is not decompressed if gzip is enabled in request options...
-                if (response.statusCode >= 200 && response.statusCode < 300) {
-                    this.emit('data', this, data, offset, range);
-                    offset += data.length;
-                }
-                else {
-                    this._isError = true;
-                    console.log(`Unexpected status code ${response.statusCode}`);
-                }
+        this.request = https_1.get(options, (res) => {
+            const { statusCode } = res;
+            const contentType = res.headers['content-type'];
+            let error;
+            if (statusCode !== 200 && statusCode !== 206) {
+                this._isError = true;
+                error = new Error(`Unexpected status code ${statusCode}`);
+            }
+            if (error) {
+                this.emit('error', this, error, range);
+                res.resume();
+                return;
+            }
+            res.on('data', (chunk) => {
+                this.emit('data', this, chunk, offset, range);
+                offset += chunk.length;
             });
-        })
-            .on('end', () => {
-            this.emit('end', this, range);
+            res.on('end', () => {
+                this.emit('end', this, range);
+            });
+        });
+        this.request.on('error', (e) => {
+            this._isError = true;
+            this.emit('error', this, e, range);
         });
         return this;
     }
     stop() {
         this.request.abort();
         this.aborted = true;
-    }
-    getId() {
-        if (!this.id) {
-            this.id = uuid();
-        }
-        return this.id;
     }
     isAborted() {
         return this.aborted;

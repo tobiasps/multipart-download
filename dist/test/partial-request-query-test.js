@@ -14,6 +14,9 @@ describe('Partial request query', () => {
             chai_1.expect(metadata.acceptRanges).to.equal(accept_ranges_1.AcceptRanges.Bytes);
             chai_1.expect(metadata.contentLength).to.not.be.NaN;
             done();
+        })
+            .catch((err) => {
+            done(err);
         });
     });
     xit('without Accept-Ranges header', function (done) {
@@ -25,6 +28,9 @@ describe('Partial request query', () => {
             chai_1.expect(metadata.acceptRanges).to.not.exist;
             chai_1.expect(metadata.contentLength).to.not.be.NaN;
             done();
+        })
+            .catch((err) => {
+            done(err);
         });
     });
 });

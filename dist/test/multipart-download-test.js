@@ -15,6 +15,9 @@ describe('Multipart download', () => {
             .on('end', () => {
             chai_1.expect(fileContentLengthCounter).to.equal(test_config_1.TestConfig.AcceptRangesSupportedUrl.contentLength);
             done();
+        })
+            .on('error', (err) => {
+            done(err);
         });
     });
     it('download with Accept-Ranges header with start options', function (done) {
@@ -31,6 +34,9 @@ describe('Multipart download', () => {
             .on('end', () => {
             chai_1.expect(fileContentLengthCounter).to.equal(test_config_1.TestConfig.AcceptRangesSupportedUrl.contentLength);
             done();
+        })
+            .on('error', (err) => {
+            done(err);
         });
     });
     it('download without Accept-Ranges header with start options', function (done) {
@@ -47,6 +53,9 @@ describe('Multipart download', () => {
             .on('end', () => {
             chai_1.expect(fileContentLengthCounter).to.equal(test_config_1.TestConfig.AcceptRangesUnsupportedUrl.contentLength);
             done();
+        })
+            .on('error', (err) => {
+            done(err);
         });
     });
 });
