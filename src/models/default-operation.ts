@@ -40,4 +40,18 @@ export class DefaultOperation implements Operation {
             downloader.stop();
         }
     }
+
+    public pause() {
+        for (const downloader of this.downloaders) {
+            downloader.pause();
+        }
+        this.emitter.emit('pause');
+    }
+
+    public resume() {
+        for (const downloader of this.downloaders) {
+            downloader.resume();
+        }
+        this.emitter.emit('resume');
+    }
 }

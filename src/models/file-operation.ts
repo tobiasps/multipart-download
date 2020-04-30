@@ -60,8 +60,16 @@ export class FileOperation implements Operation {
             this.createFile(filePath);
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
-        const stream = new WriteStream(filePath);
-        const metadataStream = new WriteStream(metadataPath);
+        const stream = new WriteStream(filePath, {
+            highWaterMark: 32<<20 // allow 32MiB to buffer before pausing
+        });
+        stream.on('drain', () => {
+            this.resume();
+        });
+
+        const metadataStream = new WriteStream(metadataPath, {
+            highWaterMark: 1<<20 // allow 1MB to buffer before warning
+        });
 
         let index = 0;
         const rangeMap: Map<number, number> = new Map();
@@ -77,15 +85,12 @@ export class FileOperation implements Operation {
                     this.emitter.emit('data', data, offset, range);
                     const i = rangeMap.get(range.start);
 
-                    stream.writeWithOffset(data, offset, (err) => {
+                    const resume = stream.writeWithOffset(data, offset, (err) => {
                         if (!err) {
                             // write resume metadata
                             const buf = Buffer.alloc(this.segmentBufferSize);
                             buf.write(JSON.stringify({index: i, offset: offset, length: data.length}), 0,
                               undefined,'utf8');
-                            /*fs.write(metadataFd, buf, 0, buf.length,
-                              this.metadataBufferSize + i * this.segmentBufferSize, () => {});*/
-                            // metadataFs.write(buf, () => {});
                             metadataStream.writeWithOffset(buf, this.metadataBufferSize + i * this.segmentBufferSize, () => {});
 
                             // Calculate progress
@@ -102,6 +107,9 @@ export class FileOperation implements Operation {
                             this.emitter.emit('progress', totalProgress);
                         }
                     });
+                    if (!resume) {
+                        this.pause();
+                    }
                 })
                 .on('end', (pd: PartialDownload, range: PartialDownloadRange) => {
                     if (!pd.isError() && !pd.isAborted() && ++endCounter === numOfConnections) {
@@ -129,6 +137,20 @@ export class FileOperation implements Operation {
         for (const downloader of this.downloaders) {
             downloader.stop();
         }
+    }
+
+    public pause() {
+        for (const downloader of this.downloaders) {
+            downloader.pause();
+        }
+        this.emitter.emit('pause');
+    }
+
+    public resume() {
+        for (const downloader of this.downloaders) {
+            downloader.resume();
+        }
+        this.emitter.emit('resume');
     }
 
     private createFile(filePath: string): string {
