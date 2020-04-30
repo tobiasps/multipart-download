@@ -38,6 +38,18 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
         this.emit('stop');
     }
 
+    public pause() {
+        this.operations.forEach((operation: Operation) => {
+            operation.pause();
+        });
+    }
+
+    public resume() {
+        this.operations.forEach((operation: Operation) => {
+            operation.resume();
+        });
+    }
+
     private getOptions(startOptions?: StartOptions): StartOptions {
         let connections: number = MultipartDownload.DEFAULT_NUMBER_OF_CONNECTIONS;
         let directory: string;
@@ -100,6 +112,12 @@ export class MultipartDownload extends events.EventEmitter implements MultipartO
                     })
                     .on('progress', (progress) => {
                         this.emit('progress', progress);
+                    })
+                    .on('pause', () => {
+                        this.emit('pause');
+                    })
+                    .on('resume', () => {
+                       this.emit('resume');
                     });
                 this.operations.set(url, operation);
             })

@@ -14,6 +14,7 @@ export class PartialDownload extends events.EventEmitter {
     private request: ClientRequest;
     private id: string;
     private aborted: boolean = false;
+    private isPaused = false;
     private _isError: boolean = false;
 
     public start(uri: string, range: PartialDownloadRange): PartialDownload {
@@ -57,6 +58,12 @@ export class PartialDownload extends events.EventEmitter {
           res.on('end', () => {
             this.emit('end', this, range);
           })
+          this.on('pause', () => {
+            res.pause();
+          });
+          this.on('resume', () => {
+            res.resume();
+          });
         });
         this.request.on('error', (e) => {
           this._isError = true;
@@ -69,6 +76,16 @@ export class PartialDownload extends events.EventEmitter {
     public stop() {
       this.request.abort();
       this.aborted = true;
+    }
+
+    public pause() {
+      this.emit('pause');
+      this.isPaused = true;
+    }
+
+    public resume() {
+      this.emit('resume');
+      this.isPaused = false;
     }
 
     public isAborted() {

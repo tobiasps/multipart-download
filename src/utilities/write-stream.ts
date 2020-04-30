@@ -25,6 +25,7 @@ export class WriteStream extends Writable {
   }
 
   public writeWithOffset(chunk: Buffer, offset: number, callback: Function): boolean {
+    // to pass the offset through the WritableStream internals we prepend the data with the offset
     const metadata = Buffer.alloc(this.metadataBufferSize);
     metadata.fill(' ');
     metadata.write(`${offset}`);
@@ -33,8 +34,10 @@ export class WriteStream extends Writable {
   }
 
   public _write(chunk: any, encoding: string, callback: Function): void {
+    // Extract the prepended offset
     const offset = +chunk.subarray(0, this.metadataBufferSize).toString();
 
+    // Write from buffer discarding the prepended metadata
     write(this.fd, chunk, this.metadataBufferSize, undefined, offset, (err) => {
       callback(err);
     });
