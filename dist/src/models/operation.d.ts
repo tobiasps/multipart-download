@@ -4,6 +4,8 @@ import { PartialDownloadRange } from './partial-download';
 export interface Operation {
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
     stop(): any;
+    pause(): any;
+    resume(): any;
 }
 export interface IMetadata {
     url: string;

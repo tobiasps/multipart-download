@@ -8,9 +8,12 @@ export declare class PartialDownload extends events.EventEmitter {
     private request;
     private id;
     private aborted;
+    private isPaused;
     private _isError;
     start(uri: string, range: PartialDownloadRange): PartialDownload;
     stop(): void;
+    pause(): void;
+    resume(): void;
     isAborted(): boolean;
     isError(): boolean;
 }

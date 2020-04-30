@@ -13,6 +13,8 @@ export declare class FileOperation implements Operation {
     constructor(saveDirectory: string, fileName?: string, options?: StartOptions);
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
     stop(): void;
+    pause(): void;
+    resume(): void;
     private createFile(filePath);
     private getFilePath(url, directory, fileName?);
     private getMetadataPath(filePath);

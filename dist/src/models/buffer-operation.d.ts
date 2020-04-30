@@ -6,4 +6,6 @@ export declare class BufferOperation implements Operation {
     private downloaders;
     start(url: string, contentLength: number, numOfConnections: number): events.EventEmitter;
     stop(): void;
+    pause(): void;
+    resume(): void;
 }

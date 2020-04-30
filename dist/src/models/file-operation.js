@@ -49,8 +49,15 @@ class FileOperation {
             this.createFile(filePath);
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
-        const stream = new write_stream_1.WriteStream(filePath);
-        const metadataStream = new write_stream_1.WriteStream(metadataPath);
+        const stream = new write_stream_1.WriteStream(filePath, {
+            highWaterMark: 32 << 20 // allow 32MiB to buffer before pausing
+        });
+        stream.on('drain', () => {
+            this.resume();
+        });
+        const metadataStream = new write_stream_1.WriteStream(metadataPath, {
+            highWaterMark: 1 << 20 // allow 1MB to buffer before warning
+        });
         let index = 0;
         const rangeMap = new Map();
         for (let segmentRange of segmentsRange) {
@@ -63,14 +70,11 @@ class FileOperation {
                 .on('data', (pd, data, offset, range) => {
                 this.emitter.emit('data', data, offset, range);
                 const i = rangeMap.get(range.start);
-                stream.writeWithOffset(data, offset, (err) => {
+                const resume = stream.writeWithOffset(data, offset, (err) => {
                     if (!err) {
                         // write resume metadata
                         const buf = Buffer.alloc(this.segmentBufferSize);
                         buf.write(JSON.stringify({ index: i, offset: offset, length: data.length }), 0, undefined, 'utf8');
-                        /*fs.write(metadataFd, buf, 0, buf.length,
-                          this.metadataBufferSize + i * this.segmentBufferSize, () => {});*/
-                        // metadataFs.write(buf, () => {});
                         metadataStream.writeWithOffset(buf, this.metadataBufferSize + i * this.segmentBufferSize, () => { });
                         // Calculate progress
                         const p = progressMap.get(i);
@@ -85,6 +89,9 @@ class FileOperation {
                         this.emitter.emit('progress', totalProgress);
                     }
                 });
+                if (!resume) {
+                    this.pause();
+                }
             })
                 .on('end', (pd, range) => {
                 if (!pd.isError() && !pd.isAborted() && ++endCounter === numOfConnections) {
@@ -109,6 +116,18 @@ class FileOperation {
         for (const downloader of this.downloaders) {
             downloader.stop();
         }
+    }
+    pause() {
+        for (const downloader of this.downloaders) {
+            downloader.pause();
+        }
+        this.emitter.emit('pause');
+    }
+    resume() {
+        for (const downloader of this.downloaders) {
+            downloader.resume();
+        }
+        this.emitter.emit('resume');
     }
     createFile(filePath) {
         fs.createWriteStream(filePath).end();

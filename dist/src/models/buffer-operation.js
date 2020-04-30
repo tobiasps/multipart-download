@@ -35,5 +35,17 @@ class BufferOperation {
             downloader.stop();
         }
     }
+    pause() {
+        for (const downloader of this.downloaders) {
+            downloader.pause();
+        }
+        this.emitter.emit('pause');
+    }
+    resume() {
+        for (const downloader of this.downloaders) {
+            downloader.resume();
+        }
+        this.emitter.emit('resume');
+    }
 }
 exports.BufferOperation = BufferOperation;
