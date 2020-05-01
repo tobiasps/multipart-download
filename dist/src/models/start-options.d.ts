@@ -7,4 +7,5 @@ export interface StartOptions {
     metadataPathExtension?: string;
     metadataPathPrefix?: string;
     temporaryExtension?: string;
+    fileWriteBufferSize?: number;
 }

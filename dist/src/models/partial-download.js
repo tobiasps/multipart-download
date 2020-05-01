@@ -8,13 +8,13 @@ class PartialDownload extends events.EventEmitter {
     constructor() {
         super(...arguments);
         this.aborted = false;
-        this.isPaused = false;
+        this.paused = false;
         this._isError = false;
     }
     start(uri, range) {
         this.aborted = false;
         if (range.start >= range.end) {
-            this.emit('end');
+            this.emit('end', this, range);
             return this;
         }
         const url = new url_1.URL(uri);
@@ -60,19 +60,24 @@ class PartialDownload extends events.EventEmitter {
         return this;
     }
     stop() {
-        this.request.abort();
+        if (this.request) {
+            this.request.abort();
+        }
         this.aborted = true;
     }
     pause() {
         this.emit('pause');
-        this.isPaused = true;
+        this.paused = true;
     }
     resume() {
         this.emit('resume');
-        this.isPaused = false;
+        this.paused = false;
     }
     isAborted() {
         return this.aborted;
+    }
+    isPaused() {
+        return this.paused;
     }
     isError() {
         return this._isError;

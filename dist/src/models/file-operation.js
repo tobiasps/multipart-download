@@ -20,7 +20,8 @@ class FileOperation {
             fileName: fileName,
             resume: true,
             metadataPathExtension: 'dat',
-            metadataPathPrefix: ''
+            metadataPathPrefix: '',
+            fileWriteBufferSize: 32 << 20 // allow 32MiB to buffer before pausing
         };
         if (options) {
             for (const key of Object.keys(options)) {
@@ -50,7 +51,7 @@ class FileOperation {
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
         const stream = new write_stream_1.WriteStream(filePath, {
-            highWaterMark: 32 << 20 // allow 32MiB to buffer before pausing
+            highWaterMark: this.options.fileWriteBufferSize
         });
         stream.on('drain', () => {
             this.resume();
