@@ -29,7 +29,8 @@ export class FileOperation implements Operation {
             fileName: fileName,
             resume: true,
             metadataPathExtension: 'dat',
-            metadataPathPrefix: ''
+            metadataPathPrefix: '',
+            fileWriteBufferSize: 32<<20 // allow 32MiB to buffer before pausing
         };
         if (options) {
             for (const key of Object.keys(options)) {
@@ -61,7 +62,7 @@ export class FileOperation implements Operation {
             this.createMetadataFile(segmentsRange, url, contentLength, this.saveDirectory, this.fileName);
         }
         const stream = new WriteStream(filePath, {
-            highWaterMark: 32<<20 // allow 32MiB to buffer before pausing
+            highWaterMark: this.options.fileWriteBufferSize
         });
         stream.on('drain', () => {
             this.resume();
