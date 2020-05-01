@@ -12,15 +12,14 @@ export interface PartialDownloadRange {
 
 export class PartialDownload extends events.EventEmitter {
     private request: ClientRequest;
-    private id: string;
     private aborted: boolean = false;
-    private isPaused = false;
+    private paused = false;
     private _isError: boolean = false;
 
     public start(uri: string, range: PartialDownloadRange): PartialDownload {
         this.aborted = false;
         if (range.start >= range.end) {
-          this.emit('end');
+          this.emit('end', this, range);
           return this;
         }
 
@@ -74,22 +73,28 @@ export class PartialDownload extends events.EventEmitter {
     }
 
     public stop() {
-      this.request.abort();
+      if (this.request) {
+        this.request.abort();
+      }
       this.aborted = true;
     }
 
     public pause() {
       this.emit('pause');
-      this.isPaused = true;
+      this.paused = true;
     }
 
     public resume() {
       this.emit('resume');
-      this.isPaused = false;
+      this.paused = false;
     }
 
     public isAborted() {
       return this.aborted;
+    }
+
+    public isPaused() {
+      return this.paused;
     }
 
     public isError() {
