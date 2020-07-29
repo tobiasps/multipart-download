@@ -15,11 +15,11 @@ export declare class FileOperation implements Operation {
     stop(): void;
     pause(): void;
     resume(): void;
-    private createFile(filePath);
-    private getFilePath(url, directory, fileName?);
-    private getMetadataPath(filePath);
-    private createMetadataFile(segments, url, contentLength, directory, fileName?);
-    private parseMetadataFile(metadataPath);
-    private bufferToJson(b);
-    private setupProgress(segments, resumeSegments?);
+    private createFile;
+    private getFilePath;
+    private getMetadataPath;
+    private createMetadataFile;
+    private parseMetadataFile;
+    private bufferToJson;
+    private setupProgress;
 }

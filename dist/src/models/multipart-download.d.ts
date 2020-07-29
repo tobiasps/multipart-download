@@ -12,8 +12,8 @@ export declare class MultipartDownload extends events.EventEmitter implements Mu
     stop(): void;
     pause(): void;
     resume(): void;
-    private getOptions(startOptions?);
-    private execute(url, options);
-    private validateInputs(url, options);
-    private validateMetadata(url, metadata);
+    private getOptions;
+    private execute;
+    private validateInputs;
+    private validateMetadata;
 }

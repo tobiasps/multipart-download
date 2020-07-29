@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MultipartDownload = void 0;
 const events = require("events");
 const validation_1 = require("../utilities/validation");
 const accept_ranges_1 = require("./accept-ranges");
@@ -125,6 +126,6 @@ class MultipartDownload extends events.EventEmitter {
         return null;
     }
 }
+exports.MultipartDownload = MultipartDownload;
 MultipartDownload.DEFAULT_NUMBER_OF_CONNECTIONS = 1;
 MultipartDownload.SINGLE_CONNECTION = 1;
-exports.MultipartDownload = MultipartDownload;

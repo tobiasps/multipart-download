@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Validation = void 0;
 const fs = require("fs");
 const validator = require("validator");
 const validFilename = require("valid-filename");

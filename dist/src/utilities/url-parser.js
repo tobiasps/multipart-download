@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UrlParser = void 0;
 const url = require("url");
 class UrlParser {
     static getFilename(fileUrl) {
