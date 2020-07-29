@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.DefaultOperation = void 0;
 const events = require("events");
 const file_segmentation_1 = require("../utilities/file-segmentation");
 const partial_download_1 = require("./partial-download");

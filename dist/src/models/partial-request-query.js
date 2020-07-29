@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PartialRequestQuery = void 0;
 const https_1 = require("https");
-const url_1 = require("url");
 class PartialRequestQuery {
     getMetadata(uri) {
         return new Promise((resolve, reject) => {
-            const url = new url_1.URL(uri);
+            const url = new URL(uri);
             const options = {
                 hostname: url.hostname,
                 path: `${url.pathname}${url.search}`,

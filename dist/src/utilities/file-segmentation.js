@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.FileSegmentation = void 0;
 class FileSegmentation {
     static getSegmentsRange(fileSize, numOfSegments) {
         const segmentSizes = FileSegmentation.getSegmentsSize(fileSize, numOfSegments);

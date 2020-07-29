@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PartialDownload = void 0;
 const events = require("events");
 const https_1 = require("https");
-const url_1 = require("url");
 const accept_ranges_1 = require("./accept-ranges");
 class PartialDownload extends events.EventEmitter {
     constructor() {
@@ -17,7 +17,7 @@ class PartialDownload extends events.EventEmitter {
             this.emit('end', this, range);
             return this;
         }
-        const url = new url_1.URL(uri);
+        const url = new URL(uri);
         const options = {
             hostname: url.hostname,
             path: `${url.pathname}${url.search}`,

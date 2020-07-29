@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.OperationFactory = void 0;
 const buffer_operation_1 = require("./buffer-operation");
 const default_operation_1 = require("./default-operation");
 const file_operation_1 = require("./file-operation");

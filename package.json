@@ -6,6 +6,7 @@
   "types": "dist/src/index.d.ts",
   "scripts": {
     "build": "rm -rfv ./dist && tsc",
+    "build:windows": "rmdir /q /s dist && tsc",
     "test": "./node_modules/.bin/mocha --reporter spec ./dist/test"
   },
   "author": "Zulhilmi Mohamed Zainuddin",

@@ -1,7 +1,6 @@
 import events = require('events');
 import {ClientRequest} from 'http';
 import {get, RequestOptions} from 'https';
-import {URL} from 'url';
 
 import {AcceptRanges} from './accept-ranges';
 

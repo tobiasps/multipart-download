@@ -1,5 +1,4 @@
 import {request, RequestOptions} from 'https';
-import {URL} from "url";
 
 export interface PartialRequestMetadata {
     readonly acceptRanges: string;

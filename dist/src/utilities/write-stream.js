@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.WriteStream = void 0;
 const stream_1 = require("stream");
 const fs_1 = require("fs");
 class WriteStream extends stream_1.Writable {
